@@ -1,19 +1,19 @@
+SHELL:=/bin/bash
+
 all: factorial_main.x
 
 test: factorial_test.x
 	./$<
 
-factorial_main.x: factorial_main.o factorial.o
-	g++ $^ -o $@
-factorial_test.x: factorial_test.o factorial.o
-	g++ $^ -o $@
-
-# The previous two rules can be summarized as 
 %.x: %.o factorial.o
-	g++ $^ -o $@
+	source $$HOME/repos/spack/share/spack/setup-env.sh; \
+	spack load catch2; \
+	g++ $$(pkg-config --cflags catch2) $^ -o $@
 
 %.o: %.cpp
-	g++ -c $<
+	source $$HOME/repos/spack/share/spack/setup-env.sh; \
+	spack load catch2; \
+	g++ $$(pkg-config --cflags catch2) -c $<
 
 clean:
 	rm -f *.o *.x
