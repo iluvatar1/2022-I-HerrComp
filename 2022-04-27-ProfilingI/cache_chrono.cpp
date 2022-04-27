@@ -7,7 +7,8 @@
    Tests cache misses.
 */
 
-void print_elapsed(auto start, auto end );
+template <typename T>
+void print_elapsed(T start, T end );
 
 int main(int argc, char **argv)
 {
@@ -18,14 +19,13 @@ int main(int argc, char **argv)
   long sI = atoi(argv[1]);
   long sJ = atoi(argv[2]);
 
-  auto start = std::chrono::steady_clock::now();
-  
   printf("Operating on matrix of size %ld by %ld\n", sI, sJ);
 
+  auto start = std::chrono::steady_clock::now();
   long *arr = new long[sI*sJ]; // double array.
   auto end = std::chrono::steady_clock::now();
   print_elapsed(start, end);
-  
+
   // option 1
   start = std::chrono::steady_clock::now();
   for (long i=0; i < sI; ++i)
@@ -33,7 +33,7 @@ int main(int argc, char **argv)
       arr[(i * (sJ)) + j ] = i;
   end = std::chrono::steady_clock::now();
   print_elapsed(start, end);
-  
+
   // option 2
   start = std::chrono::steady_clock::now();
   for (long i=0; i < sI; ++i)
@@ -49,12 +49,12 @@ int main(int argc, char **argv)
   print_elapsed(start, end);
 
   printf("%ld\n", arr[0]);
-  
+
   return 0;
 }
-  
 
-void print_elapsed(auto start, auto end )
+template <typename T>
+void print_elapsed(T start, T end )
 {
   std::cout << "Elapsed time in ms: "
 	    << std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count()
