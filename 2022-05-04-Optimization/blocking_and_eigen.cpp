@@ -15,7 +15,7 @@ template <class T, class U>
 bool verify_transpose(T & m1, U & m2, int n);
 
 int main(){
-    const int n = 12000;
+    const int n = 14000;
     const int csize = 8;
     float **a, **b;
     clock_t cputime1, cputime2;
