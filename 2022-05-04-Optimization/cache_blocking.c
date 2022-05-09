@@ -9,7 +9,7 @@
 #define min( a, b ) ( ((a) < (b)) ? (a) : (b) )
 
 int main(){
-    const int n = 256;
+    const int n = 512;
     const int csize = 32;
     float ***a, ***b;
     clock_t cputime1, cputime2;

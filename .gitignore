@@ -1,0 +1,8 @@
+*.out
+*txt
+*dat
+*data
+*cachegrind.out*
+*.x
+*.old
+*~
