@@ -11,13 +11,17 @@ int main(void)
               thid, nth);
 
 //#pragma omp parallel num_threads(4)
-#pragma omp parallel
+#pragma omp parallel private(nth, thid)
   {// se generan los threads
-    int nth = omp_get_num_threads(); // al declarar aca, son privados
-    int thid = omp_get_thread_num();
+    nth = omp_get_num_threads(); // al declarar aca, son privados
+    thid = omp_get_thread_num();
     std::printf("Hello world from thid: %d, out of %d .\n",
                 thid, nth);
   } // mueren los threads
+
+  std::printf("Hello world from thid: %d, out of %d .\n",
+              thid, nth);
+
 
   return 0;
 }
