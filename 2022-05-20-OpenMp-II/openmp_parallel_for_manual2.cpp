@@ -36,7 +36,7 @@ void fill(std::vector<double> & array)
     int iimax = iimin + Nlocal;
     for(int ii = iimin; ii < iimax; ii++) {
       array[ii] = 2*ii*std::sin(std::sqrt(ii/56.7)) +
-        std::cos(std::pow(ii*ii, 0.3));
+        std::cos(std::pow(1.0*ii*ii/N, 0.3));
     }
   }
 }
