@@ -1,3 +1,4 @@
+// stats.cpp
 #include <omp.h>
 #include <iostream>
 #include <cmath>
