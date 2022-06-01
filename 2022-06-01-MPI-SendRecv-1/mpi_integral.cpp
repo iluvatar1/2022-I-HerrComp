@@ -1,5 +1,6 @@
 #include "mpi.h"
 #include <cstdio>
+#include <cstdlib>
 
 /* Problem parameters */
 double f(double x);
@@ -8,7 +9,7 @@ void integral_mpi(double xmin, double xmax, double n, int pid, int np);
 
 int main(int argc, char **argv)
 {
-  const int numberRects = 50;
+  const int numberRects = std::atoi(argv[1]);
   const double lowerLimit = 2.0;
   const double upperLimit = 5.0;
 
@@ -47,7 +48,6 @@ void integral_mpi(double xmin, double xmax, double n, int pid, int np)
 {
   /* Adjust problem size for sub-process */
   double range = (xmax - xmin) / np;
-  double width = range / n;
   double lower = xmin + range*pid;
 
   /* Calculate area for subproblem */
