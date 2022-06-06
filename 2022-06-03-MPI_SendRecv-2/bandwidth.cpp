@@ -43,4 +43,5 @@ void bandwidth(int reps, int size, int pid, int np)
       MPI_Send(&buffer[0], size, MPI_DOUBLE, 0, tag, MPI_COMM_WORLD);
     }
   }
+  delete [] buffer;
 }
