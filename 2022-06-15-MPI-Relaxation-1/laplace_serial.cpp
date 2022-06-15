@@ -23,10 +23,13 @@ int main(void)
   initial_conditions(data);
   boundary_conditions(data);
 
-  init_gnuplot();
+  //init_gnuplot();
   for (int istep = 0; istep < STEPS; ++istep) {
     evolve(data);
-    plot_gnuplot(data);
+    //plot_gnuplot(data);
+    if (istep == STEPS-1) {
+      print(data);
+    } 
   }
 
   return 0;

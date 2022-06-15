@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 
   // problem partition
   int NCOLS = N, NROWS = N/np;
-  Matrix data(NROWS*(NCOLS + 2)); // include ghosts cells
+  Matrix data((NROWS+2)*(NCOLS)); // include ghosts cells
 
   /*
   // Serial version
@@ -43,8 +43,8 @@ int main(int argc, char **argv)
   boundary_conditions(data, N, N, ...);
   init_gnuplot();
   for (int istep = 0; istep < STEPS; ++istep) {
-    evolve(data, N, N);
-    plot_gnuplot(data, DELTA, N, N);
+  evolve(data, N, N);
+  plot_gnuplot(data, DELTA, N, N);
   }
   */
 
@@ -94,9 +94,9 @@ void evolve(Matrix & m, int nrows, int ncols)
       if(jj == ncols-1) continue;
       // evolve non boundary
       m[ii*ncols+jj] = (m[(ii+1)*ncols + jj] +
-                    m[(ii-1)*ncols + jj] +
-                    m[ii*ncols + jj + 1] +
-                    m[ii*ncols + jj - 1] )/4.0;
+                        m[(ii-1)*ncols + jj] +
+                        m[ii*ncols + jj + 1] +
+                        m[ii*ncols + jj - 1] )/4.0;
     }
   }
 }
