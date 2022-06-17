@@ -71,8 +71,8 @@ void initial_conditions(Matrix & m, int nrows, int ncols, int pid, int np)
 
 void boundary_conditions(Matrix & m, int nrows, int ncols, int pid, int np)
 {
-  TODO
   // Take into account each pid
+  TODO
 }
 
 void print_screen(const Matrix & m, int nrows, int ncols, int pid, int np)
