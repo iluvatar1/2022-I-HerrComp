@@ -4,12 +4,6 @@
 #include <iomanip>
 #include "mpi.h"
 
-// constants
-// const double DELTA = 0.05;
-// const double L = 1.479;
-// const int N = int(L/DELTA)+1;
-// const int STEPS = 200;
-
 typedef std::vector<double> Matrix; // alias
 
 void initial_conditions(Matrix & m, int nrows, int ncols);
@@ -55,8 +49,8 @@ int main(int argc, char **argv)
   boundary_conditions(data, N, N, ...);
   init_gnuplot();
   for (int istep = 0; istep < STEPS; ++istep) {
-    evolve(data, N, N);
-    plot_gnuplot(data, DELTA, N, N);
+  evolve(data, N, N);
+  plot_gnuplot(data, DELTA, N, N);
   }
   */
 
@@ -77,25 +71,20 @@ void initial_conditions(Matrix & m, int nrows, int ncols, int pid, int np)
 
 void boundary_conditions(Matrix & m, int nrows, int ncols, int pid, int np)
 {
-  // TODO
+  TODO
   // Take into account each pid
-
 }
 
 void print_screen(const Matrix & m, int nrows, int ncols, int pid, int np)
 {
-  // TODO
+  TODO
   // Master pid prints
-  if (0 == pid) {
-    // print master data
-    print_slab(m, nrows, ncols);
-    // now receive in buffer and print other pids data
-    Matrix buffer(nrows*ncols);
-    // TODO
-  } else { // workers send
-    // TODO
-    TODO
-  }
+    if (0 == pid) {
+  
+    } else { // workers send
+  
+    }
+
 }
 
 void print_slab(const Matrix & m, int nrows, int ncols)
@@ -152,9 +141,9 @@ void evolve(Matrix & m, int nrows, int ncols)
       if(jj == ncols-1) continue;
       // evolve non boundary
       m[ii*ncols+jj] = (m[(ii+1)*ncols + jj] +
-                    m[(ii-1)*ncols + jj] +
-                    m[ii*ncols + jj + 1] +
-                    m[ii*ncols + jj - 1] )/4.0;
+                        m[(ii-1)*ncols + jj] +
+                        m[ii*ncols + jj + 1] +
+                        m[ii*ncols + jj - 1] )/4.0;
     }
   }
 }
