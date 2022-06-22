@@ -22,6 +22,10 @@ void send_rows(Matrix & m, int nrows, int ncols, int pid, int np);
 void send_rows_non_blocking(Matrix & m, int nrows, int ncols, int pid, int np);
 void send_rows_sendrecv(Matrix & m, int nrows, int ncols, int pid, int np);
 void send_rows_topology(Matrix & m, int nrows, int ncols, int pid, int np);
+void evolve(Matrix & m, int nrows, int ncols, int pid, int np);
+void init_gnuplot(int pid, int np);
+void plot_gnuplot(const Matrix & m, double delta, int nrows, int ncols, int pid, int np);
+void print_slab_gnuplot(const Matrix & m, double delta, int nrows, int ncols, int pid, int np);
 
 int main(int argc, char **argv)
 {
@@ -39,34 +43,26 @@ int main(int argc, char **argv)
   int NCOLS = N, NROWS = N/np + 2; // include ghosts
   Matrix data(NROWS*NCOLS); // include ghosts cells
   initial_conditions(data, NROWS, NCOLS, pid, np);
-  if (0 == pid) {std::cout << " After initial conditions ...\n";}
-  print_screen(data, NROWS, NCOLS, pid, np, false); // todo
+  //if (0 == pid) {std::cout << " After initial conditions ...\n";}
+  //print_screen(data, NROWS, NCOLS, pid, np); // todo
 
   boundary_conditions(data, NROWS, NCOLS, pid, np); // todo
-  if (0 == pid) {std::cout << " After boundary conditions ...\n";}
-  print_screen(data, NROWS, NCOLS, pid, np, true); // todo
+  //if (0 == pid) {std::cout << " After boundary conditions ...\n";}
+  //print_screen(data, NROWS, NCOLS, pid, np, true); // todo
 
-  send_rows(data, NROWS, NCOLS, pid, np); // todo
-  //send_rows_non_blocking(data, NROWS, NCOLS, pid, np); // todo
-  //send_rows_sendrecv(data, NROWS, NCOLS, pid, np); // todo
-  //send_rows_topology(data, NROWS, NCOLS, pid, np); // todo
-  if (0 == pid) {std::cout << " After one comm ...\n";}
-  print_screen(data, NROWS, NCOLS, pid, np, true); // todo
 
-  /*
-  // Serial version
-  Matrix data(N*N);
-  initial_conditions(data, N, N, ...);
-  print_screen(...);
-  boundary_conditions(data, N, N, ...);
-  init_gnuplot();
-  for (int istep = 0; istep < STEPS; ++istep) {
-  evolve(data, N, N);
-  plot_gnuplot(data, DELTA, N, N);
-  }
-  */
+    init_gnuplot(pid, np);
+    for (int istep = 0; istep < STEPS; ++istep) {
+      evolve(data, NROWS, NCOLS, pid, np);
+      send_rows_topology(data, NROWS, NCOLS, pid, np);
+      //print_screen(data, NROWS, NCOLS, pid, np, true);
+      if (istep%100 == 0) {
+        plot_gnuplot(data, DELTA, NROWS, NCOLS, pid, np);
+      }
+    }
+  
 
-  MPI_Finalize();
+      MPI_Finalize();
   return 0;
 }
 /////////////////////////////////////////////////////
@@ -143,9 +139,10 @@ void print_slab(const Matrix & m, int nrows, int ncols, bool ghosts)
   if (false == ghosts) {
     imin = 1; imax = nrows-1;
   }
+  std::cout.precision(3);
   for(int ii = imin; ii < imax; ++ii) {
     for(int jj = 0; jj < ncols; ++jj) {
-      std::cout << std::setw(3) <<  m[ii*ncols + jj] << " ";
+      std::cout << std::setw(9) <<  m[ii*ncols + jj] << " ";
     }
     std::cout << "\n";
   }
@@ -211,8 +208,8 @@ void send_rows_sendrecv(Matrix & m, int nrows, int ncols, int pid, int np)
                  &m[(0)*ncols], ncols, MPI_DOUBLE, pid-1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     // send data backwards
     MPI_Sendrecv(&m[(1)*ncols], ncols, MPI_DOUBLE, pid-1, 0,
-                 &m[(nrows-1)*ncols], ncols, MPI_DOUBLE, pid+1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-  }
+                 &m[(nrows-1)*ncols], ncols, MPI_DOUBLE, pid+1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);  }
+
   if (np-1 == pid) {
     MPI_Sendrecv(&m[(1)*ncols], ncols, MPI_DOUBLE, pid-1, 0,
                  &m[(0)*ncols], ncols, MPI_DOUBLE, pid-1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -247,45 +244,14 @@ void send_rows_topology(Matrix & m, int nrows, int ncols, int pid, int np)
                          MPI_BOTTOM, rcounts, rdispl, types, comm);
 }
 
-/////////////////////////////////////////////////////
-// SERIAL VERSIONS
-
-void initial_conditions(Matrix & m, int nrows, int ncols)
+void evolve(Matrix & m, int nrows, int ncols, int pid, int np)
 {
-  for(int ii=0; ii<nrows; ++ii) {
-    for(int jj=0; jj<ncols; ++jj) {
-      m[ii*ncols + jj] = 1.0;
-    }
-  }
-}
-void boundary_conditions(Matrix & m, int nrows, int ncols)
-{
-  int ii = 0, jj = 0;
-
-  ii = 0;
-  for (jj = 0; jj < ncols; ++jj)
-    m[ii*ncols + jj] = 100;
-
-  ii = nrows-1;
-  for (jj = 0; jj < ncols; ++jj)
-    m[ii*ncols + jj] = 0;
-
-  jj = 0;
-  for (ii = 1; ii < nrows-1; ++ii)
-    m[ii*ncols + jj] = 0;
-
-  jj = ncols-1;
-  for (ii = 1; ii < nrows-1; ++ii)
-    m[ii*ncols + jj] = 0;
-}
-
-void evolve(Matrix & m, int nrows, int ncols)
-{
-  for(int ii=0; ii<nrows; ++ii) {
+  // evolve only the real data
+  for(int ii=1; ii<nrows-1; ++ii) {
     for(int jj=0; jj<ncols; ++jj) {
       // check if boundary
-      if(ii == 0) continue;
-      if(ii == nrows-1) continue;
+      if(0 == pid && ii == 1) continue;
+      if(np-1 == pid && ii == nrows-2) continue;
       if(jj == 0) continue;
       if(jj == ncols-1) continue;
       // evolve non boundary
@@ -297,26 +263,41 @@ void evolve(Matrix & m, int nrows, int ncols)
   }
 }
 
-void print(const Matrix & m, double delta, int nrows, int ncols)
+void init_gnuplot(int pid, int np)
 {
-  for(int ii=0; ii<nrows; ++ii) {
-    for(int jj=0; jj<ncols; ++jj) {
-      std::cout << ii*delta << " " << jj*delta << " " <<  m[ii*ncols + jj] << "\n";
-    }
-    std::cout << "\n";
+  if (0 == pid) {
+    std::cout << "set contour " << std::endl;
+    std::cout << "set terminal gif animate " << std::endl;
+    std::cout << "set out 'anim.gif' " << std::endl;
   }
 }
 
-void init_gnuplot(void)
+void plot_gnuplot(const Matrix & m, double delta, int nrows, int ncols, int pid, int np)
 {
-  std::cout << "set contour " << std::endl;
-  //std::cout << "set terminal gif animate " << std::endl;
-  //std::cout << "set out 'anim.gif' " << std::endl;
+  if (0 == pid) {
+    std::cout << "splot '-' w pm3d " << std::endl;
+    // print master data
+    print_slab_gnuplot(m, delta, nrows, ncols, pid, np);
+    // now receive and print other pdis data
+    Matrix buffer(nrows*ncols);
+    for (int ipid = 1; ipid < np; ++ipid) {
+      MPI_Recv(&buffer[0], nrows*ncols, MPI_DOUBLE, ipid, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      print_slab_gnuplot(buffer, delta, nrows, ncols, ipid, np);
+    }
+    std::cout << "e" << std::endl;
+  } else { // workers send
+    MPI_Send(&m[0], nrows*ncols, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+  }
 }
 
-void plot_gnuplot(const Matrix & m, double delta, int nrows, int ncols)
+void print_slab_gnuplot(const Matrix & m, double delta, int nrows, int ncols, int pid, int np)
 {
-  std::cout << "splot '-' w pm3d " << std::endl;
-  print(m, delta, nrows, ncols);
-  std::cout << "e" << std::endl;
+  // needs to fix local index with global ones
+  // ignore ghosts
+  for(int ii=1; ii<nrows-1; ++ii) {
+    for(int jj=0; jj<ncols; ++jj) {
+      std::cout << (ii-1 + nrows*pid)*delta << " " << (jj-1)*delta << " " <<  m[ii*ncols + jj] << "\n";
+    }
+    std::cout << "\n";
+  }
 }
