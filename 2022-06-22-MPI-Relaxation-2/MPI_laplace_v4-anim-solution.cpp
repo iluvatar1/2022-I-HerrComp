@@ -296,7 +296,7 @@ void print_slab_gnuplot(const Matrix & m, double delta, int nrows, int ncols, in
   // ignore ghosts
   for(int ii=1; ii<nrows-1; ++ii) {
     for(int jj=0; jj<ncols; ++jj) {
-      std::cout << (ii-1 + nrows*pid)*delta << " " << (jj-1)*delta << " " <<  m[ii*ncols + jj] << "\n";
+      std::cout << (ii-1 + nrows*pid)*delta << " " << (jj)*delta << " " <<  m[ii*ncols + jj] << "\n";
     }
     std::cout << "\n";
   }
